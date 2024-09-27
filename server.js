@@ -75,10 +75,6 @@ app.put('/contacts/:id', (req, res) => {
 //DELETE
 app.delete('/contacts/:id', (req, res) => {
 
-    if (db.contacts.length <= 0) {
-        db.idTracker = 0;
-    };
-
     const contactId = req.params.id;
 
     const deleteContact = db.contacts.filter(contact => contact.id !== parseInt(contactId));
