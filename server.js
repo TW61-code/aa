@@ -2,12 +2,17 @@ import express from 'express';
 import cors from 'cors';
 import db from './db.json';
 import fs from 'fs';
+import fileUpload from 'express-fileupload';
+import path from 'path';
 
 const app = express();
 const port = 3000;
 
 app.use(express.json());
+app.use(fileUpload());
 app.use(cors());
+const staticPath = path.join(__dirname);
+app.use(express.static(staticPath));
 
 //RECIEVE
 app.get('/contacts', (req, res) => {
@@ -16,21 +21,22 @@ app.get('/contacts', (req, res) => {
     const parsedObj = JSON.parse(obj);
     const contacts = parsedObj.contacts; //array of contacts;
 
-    res.send(contacts);
+    res.send(contacts); 
 
 });
 
-// app.get('/contacts', (req, res) => {
-//     res.send(db.contacts);
-// });
-
 // CREATE
 app.post('/contacts', (req, res) => {
+
     db.contacts = db.contacts || [];
     db.idTracker = db.idTracker + 1 || 0;
 
     const newUser = req.body;
-    db.contacts.push({ ...newUser, id: db.idTracker });
+    const image = req.files.image;
+    const imageURL = 'http://localhost:3000/images/' + image.name;
+    const uploadPath = __dirname + '/images/' + image.name;
+
+    db.contacts.push({ ...newUser, id: db.idTracker, image: imageURL });
 
     fs.writeFile('./db.json', JSON.stringify(db, null, 2), (err) => {
 
@@ -38,12 +44,16 @@ app.post('/contacts', (req, res) => {
             console.error(err);
             return;
         };
-
-        res.send(db.contacts);
-        console.log('req recieved');
-
     });
 
+    image.mv(uploadPath, (err) => {
+
+        if (err) {
+            return res.status(500).send(err);
+        };
+    });
+
+    res.send(newUser);
 });
 
 //UPDATE

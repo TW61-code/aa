@@ -1,4 +1,27 @@
 {
-  "contacts": [],
-  "idTracker": 0
+  "contacts": [
+    {
+      "firstName": "Freddy",
+      "lastName": "Lamb",
+      "userName": "FreeLamb",
+      "email": "Freelamb@gmail.com",
+      "dob": "Nov 12, 2000",
+      "event": "Coding",
+      "number": "021 089 06584",
+      "id": 24,
+      "image": "http://localhost:3000/images/img-6.jpg"
+    },
+    {
+      "firstName": "Freddy",
+      "lastName": "Lamb",
+      "userName": "FreeLamb",
+      "email": "Freelamb@gmail.com",
+      "dob": "Nov 12, 2000",
+      "event": "Coding",
+      "number": "021 089 06584",
+      "id": 25,
+      "image": "http://localhost:3000/images/img-7.jpg"
+    }
+  ],
+  "idTracker": 25
 }
