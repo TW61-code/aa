@@ -62,14 +62,29 @@ app.put('/contacts/:id', (req, res) => {
     const userId = req.params.id;
 
     const mappedContacts = db.contacts.map(user => {
-        
+
         if (user.id === parseInt(userId)) {
+
+            const image = req.files.image;
+            const imageURL = 'http://localhost:3000/images/' + image.name;
+            const uploadPath = __dirname + '/images/' + image.name;
+
+            user.image = imageURL;
+
+            image.mv(uploadPath, (err) => {
+                if (err) {
+                    return res(500).send(err);
+                }
+            });
+
             const updatedUser = { ...user, ...req.body};
+
+            console.log(user);
+
             return updatedUser;
         };
 
         return user;
-
     });
 
     db.contacts = mappedContacts;
@@ -77,9 +92,6 @@ app.put('/contacts/:id', (req, res) => {
     fs.writeFile('./db.json', JSON.stringify(db, null, 2), (err) => {
         res.send(db.contacts);
     });
-
-
-
 });
 
 //DELETE
