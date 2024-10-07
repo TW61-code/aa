@@ -1,86 +1,73 @@
 import express from 'express';
 import cors from 'cors';
+import fileUpload from 'express-fileupload';
 import db from './db.json';
 import fs from 'fs';
-import fileUpload from 'express-fileupload';
 import path from 'path';
 
 const app = express();
 const port = 3000;
 
 app.use(express.json());
-app.use(fileUpload());
 app.use(cors());
-const staticPath = path.join(__dirname);
+app.use(fileUpload());
+const staticPath = path.join(__dirname); // = /Users/student/Documents/aa
 app.use(express.static(staticPath));
 
-//RECIEVE
 app.get('/contacts', (req, res) => {
 
     const obj = fs.readFileSync('./db.json', 'utf8');
     const parsedObj = JSON.parse(obj);
-    const contacts = parsedObj.contacts; //array of contacts;
+    const contacts = parsedObj.contacts;
 
-    res.send(contacts); 
-
+    console.log(contacts);
+    res.send(contacts);
 });
 
-// CREATE
 app.post('/contacts', (req, res) => {
+
+    let uploadPath;
+    const UIID = new Date();
 
     db.contacts = db.contacts || [];
     db.idTracker = db.idTracker + 1 || 0;
 
-    const newUser = req.body;
     const image = req.files.image;
-    const imageURL = 'http://localhost:3000/images/' + image.name;
-    const uploadPath = __dirname + '/images/' + image.name;
+    const imageURL = `http://localhost:3000/images/${image.name}`;
+    const newUser = { ...req.body, image: imageURL };
 
-    db.contacts.push({ ...newUser, id: db.idTracker, image: imageURL });
+    uploadPath = __dirname + '/images/' + UIID;
 
-    fs.writeFile('./db.json', JSON.stringify(db, null, 2), (err) => {
-
-        if (err) {
-            console.error(err);
-            return;
-        };
-    });
+    db.contacts.push({ ...newUser, id: db.idTracker });
 
     image.mv(uploadPath, (err) => {
-
         if (err) {
-            return res.status(500).send(err);
+            return res.status(500).send('Error ', err);
         };
     });
 
     res.send(newUser);
+    console.log(imageURL);
+
+    fs.writeFile('./db.json', JSON.stringify(db, null, 2), (err) => {
+
+        if (err) {
+            console.error('ERROR!123 ', err);
+            return;
+        };
+
+        console.log('req recieved');
+    });
 });
 
-//UPDATE
 app.put('/contacts/:id', (req, res) => {
 
     const userId = req.params.id;
 
     const mappedContacts = db.contacts.map(user => {
-
+        
         if (user.id === parseInt(userId)) {
-
-            const image = req.files.image;
-            const imageURL = 'http://localhost:3000/images/' + image.name;
-            const uploadPath = __dirname + '/images/' + image.name;
-
-            user.image = imageURL;
-
-            image.mv(uploadPath, (err) => {
-                if (err) {
-                    return res(500).send(err);
-                }
-            });
-
             const updatedUser = { ...user, ...req.body};
-
-            console.log(user);
-
             return updatedUser;
         };
 
@@ -90,12 +77,14 @@ app.put('/contacts/:id', (req, res) => {
     db.contacts = mappedContacts;
 
     fs.writeFile('./db.json', JSON.stringify(db, null, 2), (err) => {
+
         res.send(db.contacts);
     });
 });
 
-//DELETE
 app.delete('/contacts/:id', (req, res) => {
+
+    console.log(__dirname);
 
     const contactId = req.params.id;
 
@@ -105,7 +94,6 @@ app.delete('/contacts/:id', (req, res) => {
     fs.writeFile('./db.json', JSON.stringify(db, null, 2), (err) => {
         res.send(db.contacts);
     });
-
 });
 
 app.listen(port, () => {
